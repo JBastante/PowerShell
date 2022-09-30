@@ -36,19 +36,25 @@ Param(
     [switch] $listar,$vaciar
 )
 function listar {
-    Write-Output "-Listo cosas-"
-    $listado=Get-ChildItem
-    foreach ($archivo in $listado) {
-        Write-Output ($archivo).DyrectoryName
-
-
+    Write-Output ""
+    foreach ($archivo in Get-ChildItem) { #aca listo nombre y direccion de lo que haya en get-childitem
+        #$archive = [System.IO.Compression.ZipFile]::OpenRead("~\papelera.zip")
+        Write-Output "$(($archivo).Name)   $(($archivo).FullName)"
+        
     }
+    Write-Output ""
 }
 
 function eliminar {
     if ( Test-Path -Path $eliminar ){ #si exista el archivo a eliminar entra
-        Write-Output "Entro"
+
+        Write-Output $PWD\$eliminar
+        get-childItem  .\pruebas\asd.txt| select FullName
     }
+    else {
+        Write-Output "Error el archivo $eliminar no existe"
+    }
+
 }
 
 function errorParametros(){
@@ -75,7 +81,9 @@ Write-Output $parameterName
 if($listar){
     listar
 }
-
+if($eliminar){
+    eliminar
+}
 
 #switch ($Args[0]) {
 #    "-listar" { 
