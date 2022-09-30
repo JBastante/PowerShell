@@ -12,7 +12,7 @@
 #		Baranda, Leonardo 			36875068	#
 #												#
 #################################################
-
+#creo cambios
 <#
 .SYNOPSIS
 El script emula el comportamiento de la papelera de reciclaje.
