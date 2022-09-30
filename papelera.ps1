@@ -45,7 +45,6 @@ $cantArgumentos=$args.Count
 Write-Output "$cantArgumentos asdsa"
 
 function listar {
-    Write-Output "Listar cosas"     
 }
 
 function eliminar {
