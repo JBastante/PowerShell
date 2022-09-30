@@ -39,7 +39,7 @@ function listar {
     Write-Output "-Listo cosas-"
     $listado=Get-ChildItem
     foreach ($archivo in $listado) {
-        Write-Output ($archivo).PSScriptRoot
+        Write-Output ($archivo).DyrectoryName
 
 
     }
