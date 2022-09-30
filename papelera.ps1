@@ -12,7 +12,6 @@
 #		Baranda, Leonardo 			36875068	#
 #												#
 #################################################
-#creo cambios
 <#
 .SYNOPSIS
 El script emula el comportamiento de la papelera de reciclaje.
@@ -30,21 +29,20 @@ A la hora de querer recuperar, eliminar o destruir, se escribe el nombre del arc
 .\papelera.ps1 -eliminar nombreArchivo
 .\papelera.ps1 -destruir nombreArchivo
 #>
-Param(  # -accion <String> -archivo <String>
+Param(  
     [Parameter(position = 1 )]
     [string] $eliminar,$restaurar,$destruir,
     [Parameter(position = 1 )]
-    [string] [AllowNull()] $listar,$vaciar
-    
+    [switch] $listar,$vaciar
 )
-$sss=$Args[0]
-
-Write-Output $sss
-$cantArgumentos=$args.Count
-
-Write-Output "$cantArgumentos asdsa"
-
 function listar {
+    Write-Output "-Listo cosas-"
+    $listado=Get-ChildItem
+    foreach ($archivo in $listado) {
+        Write-Output ($archivo).PSScriptRoot
+
+
+    }
 }
 
 function eliminar {
@@ -67,23 +65,29 @@ function errorParametros(){
 	Exit
 }
 
-
 #if( $cantArgumentos -le 1 && $cantArgumentos -gt 4 ){    errorParametros}
-#Write-Output $args[0]
-switch ($parameterName) {
-    "-listar" { 
-        listar
-        Exit
-    } 
-    eliminar {
-        eliminar
-        Exit
-    }
-    Default {}
+Write-Output ($Args[0])
+Write-Output ($Args[1])
+#$parameterName=$$
+Write-Output $parameterName
+
+
+if($listar){
+    listar
 }
 
-#hago cambios desde la note
 
+#switch ($Args[0]) {
+#    "-listar" { 
+#        listar
+#        Exit
+#    } 
+#    eliminar {
+#        eliminar
+#        Exit
+#    }
+#    Default {}
+#}
 
 
 <#function Main()
