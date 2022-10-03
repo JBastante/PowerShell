@@ -31,26 +31,44 @@ A la hora de querer recuperar, eliminar o destruir, se escribe el nombre del arc
 #>
 Param(  
     [Parameter(position = 1 )]
-    [string] $eliminar,$restaurar,$destruir,
+    [string] $eliminar,$recuperar,$destruir,
     [Parameter(position = 1 )]
-    [switch] $listar,
-    [Parameter(Position=1,ParameterSetName='vaciar')]
-    [switch]  $vaciar
+    [switch] $listar,$vaciar
+    #[Parameter(Position=1,ParameterSetName='vaciar')]
+    #[switch]  $vaciar
 )
 function listar {
     #tengo que verificar si la papelera esta vacia
+
     if(!(Test-Path "${HOME}\papelera.zip")){
         Write-host "Error, nada que listar, la papelera esta vacia"
         exit 1
     }
+    
+    if( $(get-childItem "${HOME}\papelera.zip" ).Count -eq 0 ){
+        Write-Output "Error, la papelera está vacio"
+        Exit 1
+    }
     Write-Output ""
-     $realpath=[System.io.compression.zipfile]::OpenRead("${HOME}\papelera.zip").Entries.FullName
+    $realpath=[System.IO.Compression.ZipFile]::Open("${HOME}\papelera.zip", 'read').Entries
     foreach($arch in $realpath){
-        $basename=$(Split-Path -Leaf $arch)
-        $dirname=$(Split-Path -Path $arch)
+        Resolve-Path "$arch" -ErrorAction SilentlyContinue -ErrorVariable _file
+        $arch = $_file[0].TargetObject
+        $basename=$(Split-Path -Leaf "$arch")
+        $dirname=$(Split-Path -Path "$arch")
         Write-Host $basename"   "$dirname
     }
     Write-Output ""
+    <#ver que onda, funcinaba en casa
+    Write-Output ""
+    $realpath=[System.IO.Compression.ZipFile]::Open("${HOME}\papelera.zip", 'read').Entries.FullName
+    foreach($arch in $realpath){
+        $basename=$(Split-Path -Leaf "$arch")
+        $dirname=$(Split-Path -Path "$arch")
+        Write-Host $basename"   "$dirname
+    }
+    Write-Output ""
+    #>
 }
 
 function eliminar {
@@ -59,7 +77,7 @@ function eliminar {
 
         if (Test-Path -Path "${HOME}\papelera.zip" -PathType Leaf){ #si existe la papelera actualizo contenido
             $nivelDeCompresion = [System.IO.Compression.CompressionLevel]::Fastest
-            $zip = [System.IO.Compression.ZipFile]::Open("${HOME}\papelera.zip", 'update')
+            $zip = [System.IO.Compression.ZipFile]::Open("${HOME}\papelera.zip", 'update');
             [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $aZipear, $aZipear, $nivelDeCompresion)
             $zip.Dispose()
         }
@@ -78,9 +96,11 @@ function eliminar {
 }
 
 function vaciar() {
-    if (Test-Path -Path "~\papelera.zip" -PathType Leaf){
-        Remove-Item ${HOME}\papelera.zip
-        New-Item ${HOME}\papelera.zip
+    if (Test-Path -Path "${HOME}\papelera.zip" -PathType Leaf){
+        Remove-Item "${HOME}\papelera.zip"
+        Add-Type -Assembly 'System.IO.Compression.FileSystem';
+        $zip = [System.IO.Compression.ZipFile]::Open("${HOME}\papelera.zip", 'create');
+        $zip.Dispose();
         Exit
     }
     else {
@@ -105,7 +125,7 @@ function errorParametros(){
 
 
 function recuperar{
-    $archivoParaRecuperar="$archivo"
+    $archivoParaRecuperar="$recuperar"
     $papelera="${HOME}/papelera.zip"
     
     if(!(Test-Path "$papelera")){
@@ -119,32 +139,32 @@ function recuperar{
       exit 1
     }
   
-    $contadorArchivosIguales=0;
-    $archivosIguales = "";
+    $contadorArchivosIguales=0
+    $archivosIguales = ""
     $arrayArchivos = @()
   
-    Add-Type -Assembly 'System.IO.Compression.FileSystem';
-    $zip = [System.IO.Compression.ZipFile]::Open("$papelera", 'update');
+    Add-Type -Assembly 'System.IO.Compression.FileSystem'
+    $zip = [System.IO.Compression.ZipFile]::Open("$papelera", 'update')
     
     foreach($archivoDelZip in $zip.Entries){
       Resolve-Path "$archivoDelZip" -ErrorAction SilentlyContinue -ErrorVariable _file
-      $archivoListar = $_file[0].TargetObject;
+      $archivoListar = $_file[0].TargetObject
       $nombreArchivo=$(Split-Path -Leaf "$archivoListar")
       $rutaArchivo=$(Split-Path -Path "$archivoListar")
   
       if("$nombreArchivo".Equals("$archivoParaRecuperar")){
-        $contadorArchivosIguales++;
+        $contadorArchivosIguales++
         $archivosIguales="$archivosIguales$contadorArchivosIguales - $nombreArchivo $rutaArchivo;"
         $arrayArchivos += "$archivoListar"
       }
     }
   
     if($contadorArchivosIguales -eq 0){
-      Write-Host "No existe el archivo en la papelera";
-      $zip.Dispose();
-      exit 1;
+      Write-Host "No existe el archivo en la papelera"
+      $zip.Dispose()
+      exit 1
     }elseif($contadorArchivosIguales -eq 1){
-      $indice=0;
+      $indice=0
       foreach($archivoDelZip in $zip.Entries){
         Resolve-Path "$archivoDelZip" -ErrorAction SilentlyContinue -ErrorVariable _file
         $archivoRecuperar = $_file[0].TargetObject;
