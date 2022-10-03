@@ -37,24 +37,60 @@ Param(
 )
 function listar {
     Write-Output ""
-    foreach ($archivo in Get-ChildItem) { #aca listo nombre y direccion de lo que haya en get-childitem
-        #$archive = [System.IO.Compression.ZipFile]::OpenRead("~\papelera.zip")
-        Write-Output "$(($archivo).Name)   $(($archivo).FullName)"
-        
+    #$archive = [System.IO.Compression.ZipFile]::OpenRead("~\papelera.zip")
+    
+    #Write-Output $([io.compression.zipfile]::OpenRead("${HOME}\papelera.zip").Entries.FullName)
+    
+    #foreach ($archivo in Get-ChildItem) { #aca listo nombre y direccion de lo que haya en get-childitem
+    #    Write-Output "$(($archivo).Name)   $(($archivo).FullName)"
+    #}
+    try {
+        [System.io.compression.zipfile]::OpenRead("${HOME}\papelera.zip").Entries
     }
+    catch {
+        Write-Output "Error, nada que listar, la papelera esta vacia"
+    }
+
     Write-Output ""
 }
 
 function eliminar {
     if ( Test-Path -Path $eliminar ){ #si exista el archivo a eliminar entra
+        $aZipear=$(get-childItem  $eliminar).FullName
+        Write-Output ($aZipear)
+        #$aZipear=get-childItem  $eliminar| select FullName
+        if (Test-Path -Path "~\papelera.zip" -PathType Leaf){
+        #if ([System.IO.File]::Exists("~\papelera.zip")) {
+            #Compress-Archive -LiteralPath "$aZipear" -Update -DestinationPath ~\papelera.zip
+            [System.IO.Compression.ZipFile]::CreateFromDirectory('~\papelera.zip', $aZipear)
 
-        Write-Output $PWD\$eliminar
-        get-childItem  .\pruebas\asd.txt| select FullName
+            $compressionLevel = [System.IO.Compression.CompressionLevel]::Fastest
+            $zip = [System.IO.Compression.ZipFile]::Open($zipFilePath, 'update')
+            [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $file, (Split-Path $file1 -Leaf), $compressionLevel)
+
+
+        }
+        else {
+            #Compress-Archive -LiteralPath $aZipear -DestinationPath ~\papelera.zip
+            [System.IO.Compression.ZipFile]::CreateFromDirectory('~\papelera.zip', $aZipear)
+        }
+        Write-Output "Se envia el archivo $aZipear a la papelera"
     }
     else {
         Write-Output "Error el archivo $eliminar no existe"
     }
 
+}
+
+function vaciar() {
+    if (Test-Path -Path "~\papelera.zip" -PathType Leaf){
+        Remove-Item ~\papelera.zip
+        New-Item ~\papelera.zip
+    }
+    else {
+        Write-Output "Error, no existe la papelera"
+        Exit
+    }
 }
 
 function errorParametros(){
@@ -80,10 +116,17 @@ Write-Output $parameterName
 
 if($listar){
     listar
+    Exit
 }
-if($eliminar){
+elseif($vaciar){
+    vaciar
+    Exit
+}
+elseif($eliminar){
     eliminar
+    Exit
 }
+
 
 #switch ($Args[0]) {
 #    "-listar" { 
