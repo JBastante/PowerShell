@@ -37,7 +37,7 @@ Param(
     [Parameter(Position=1,ParameterSetName='vaciar')]
     [switch]  $vaciar
 )
-function listar {
+function listar() {
     #tengo que verificar si la papelera esta vacia
 
     if(!(Test-Path "${HOME}\papelera.zip")){
@@ -72,7 +72,7 @@ function listar {
     
 }
 
-function eliminar {
+function eliminar() {
     if ( Test-Path -Path $eliminar ){ #si existe el archivo a eliminar entra
         $aZipear=$(get-childItem  $eliminar).FullName
 
@@ -94,6 +94,10 @@ function eliminar {
         Write-Output "Error el archivo $eliminar no existe"
         Exit 1
     }
+}
+
+function destruir () {
+
 }
 
 function vaciar() {
