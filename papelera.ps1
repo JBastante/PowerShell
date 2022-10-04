@@ -45,8 +45,8 @@ function listar() {
         exit 1
     }
     
-    if( $(get-childItem "${HOME}\papelera.zip" ).Count -eq 0 ){
-        Write-Output "Error, la papelera está vacio"
+    if( $(get-childItem "${HOME}\papelera.zip").Length -le 22 ){ #un archivo zip vacio pesa 22bytes
+        Write-Output "Error, la papelera está vacía"
         Exit 1
     }
     <#
@@ -81,14 +81,16 @@ function eliminar() {
             $zip = [System.IO.Compression.ZipFile]::Open("${HOME}\papelera.zip", 'update');
             [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $aZipear, $aZipear, $nivelDeCompresion)
             $zip.Dispose()
+            Remove-Item "$eliminar"
+            Write-Output "Se elimina archivo $eliminar"
         }
         else {
             $zip = [System.IO.Compression.ZipFile]::Open("${HOME}\papelera.zip", "create")
             $zip.Dispose()
+            Remove-Item "$eliminar"
+            Write-Output "Se elimina archivo $eliminar"
         }
 
-        Remove-Item "$eliminar"
-        Write-Output "Se elimina archivo $eliminar"
     }
     else {
         Write-Output "Error el archivo $eliminar no existe"
@@ -96,14 +98,31 @@ function eliminar() {
     }
 }
 
-function destruir () {
+function destruir() {
+  if( $(get-childItem "${HOME}\papelera.zip").Length -le 22 ){ #un archivo zip vacio pesa 22bytes
+      Write-Output "Error, la papelera está vacía"
+      Exit 1
+  }
 
+  if (Test-Path -Path "${HOME}\papelera.zip" -PathType Leaf){
+    if( $(Get-ChildItem "${HOME}\papelera").Length -gt 22 ){
+        [System.IO.Compression.ZipFileExtensions]::ExtractToFile("${HOME}\papeleraTemp", "$archivoRecuperar", $true)
+        break
+    }
+    $indice++
+  
+    $zip.Entries[$indice].Delete();
+  }
+  else {
+    Write-Output "Error, no existe la papelera"
+  }
 }
-
+<#
 function vaciar() {
     if (Test-Path -Path "${HOME}\papelera.zip" -PathType Leaf){
         Remove-Item "${HOME}\papelera.zip"
         Add-Type -Assembly 'System.IO.Compression.FileSystem'
+        [System.IO.Compression.ZipFile]::ExtractToDirectory(
         $zip = [System.IO.Compression.ZipFile]::Open("${HOME}\papelera.zip", 'create')
         $zip.Dispose();
         Exit
@@ -113,22 +132,7 @@ function vaciar() {
         Exit 1
     }
 }
-
-function errorParametros(){
-	Write-Output "
-    #####################################################
-
-    Error revisar parametros ingresados
-	
-    Se recomienda usar la ayuda -> Get-Help ./papelera.sh
-
-    #####################################################
-
-    "
-	Exit
-}
-
-
+#>
 function recuperar{
     $archivoParaRecuperar="$recuperar"
     $papelera="${HOME}/papelera.zip"
@@ -139,9 +143,9 @@ function recuperar{
       exit 1
     }
   
-    if([String]::IsNullOrEmpty("$archivoParaRecuperar")){
-      Write-host "Parámetro nombre de archivo a recuperar sin informar"
-      exit 1
+    if( $(get-childItem "${HOME}\papelera.zip").Length -le 22 ){ #un archivo zip vacio pesa 22bytes
+      Write-Output "Error, la papelera está vacía"
+      Exit 1
     }
   
     $contadorArchivosIguales=0
@@ -172,14 +176,14 @@ function recuperar{
       $indice=0
       foreach($archivoDelZip in $zip.Entries){
         Resolve-Path "$archivoDelZip" -ErrorAction SilentlyContinue -ErrorVariable _file
-        $archivoRecuperar = $_file[0].TargetObject;
+        $archivoRecuperar = $_file[0].TargetObject
         $nombreArchivo=$(Split-Path -Leaf "$archivoRecuperar")
     
         if("$nombreArchivo".Equals("$archivoParaRecuperar")){
-          [System.IO.Compression.ZipFileExtensions]::ExtractToFile($zip.Entries[$indice], "$archivoRecuperar", $true);
-          break;
+          [System.IO.Compression.ZipFileExtensions]::ExtractToFile($zip.Entries[$indice], "$archivoRecuperar", $true)
+          break
         }
-        $indice++;
+        $indice++
       }
       $zip.Entries[$indice].Delete();
     }else{
@@ -229,6 +233,22 @@ function recuperar{
     Write-host "Archivo recuperado"
   }
   
+
+  function errorParametros(){
+    Write-Output "
+      #####################################################
+  
+      Error revisar parametros ingresados
+    
+      Se recomienda usar la ayuda -> Get-Help ./papelera.sh
+  
+      #####################################################
+  
+      "
+    Exit
+  }
+  
+
 if($listar){
     listar
     Exit
