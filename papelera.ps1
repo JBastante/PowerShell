@@ -32,10 +32,10 @@ A la hora de querer recuperar, eliminar o destruir, se escribe el nombre del arc
 Param(  
     [Parameter(position = 1 )]
     [string] $eliminar,$recuperar,$destruir,
-    [Parameter(position = 1 )]
-    [switch] $listar,$vaciar
-    #[Parameter(Position=1,ParameterSetName='vaciar')]
-    #[switch]  $vaciar
+    [Parameter(position = 1)]
+    [switch] $listar,
+    [Parameter(Position=1,ParameterSetName='vaciar')]
+    [switch]  $vaciar
 )
 function listar {
     #tengo que verificar si la papelera esta vacia
@@ -49,6 +49,7 @@ function listar {
         Write-Output "Error, la papelera está vacio"
         Exit 1
     }
+    <#
     Write-Output ""
     $realpath=[System.IO.Compression.ZipFile]::Open("${HOME}\papelera.zip", 'read').Entries
     foreach($arch in $realpath){
@@ -58,9 +59,9 @@ function listar {
         $dirname=$(Split-Path -Path "$arch")
         Write-Host $basename"   "$dirname
     }
+    #>
     Write-Output ""
-    <#ver que onda, funcinaba en casa
-    Write-Output ""
+    #ver que onda, funcinaba en casa
     $realpath=[System.IO.Compression.ZipFile]::Open("${HOME}\papelera.zip", 'read').Entries.FullName
     foreach($arch in $realpath){
         $basename=$(Split-Path -Leaf "$arch")
@@ -68,7 +69,7 @@ function listar {
         Write-Host $basename"   "$dirname
     }
     Write-Output ""
-    #>
+    
 }
 
 function eliminar {
@@ -98,8 +99,8 @@ function eliminar {
 function vaciar() {
     if (Test-Path -Path "${HOME}\papelera.zip" -PathType Leaf){
         Remove-Item "${HOME}\papelera.zip"
-        Add-Type -Assembly 'System.IO.Compression.FileSystem';
-        $zip = [System.IO.Compression.ZipFile]::Open("${HOME}\papelera.zip", 'create');
+        Add-Type -Assembly 'System.IO.Compression.FileSystem'
+        $zip = [System.IO.Compression.ZipFile]::Open("${HOME}\papelera.zip", 'create')
         $zip.Dispose();
         Exit
     }
