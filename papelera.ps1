@@ -49,7 +49,7 @@ function listar() {
         Write-Host $basename"   "$dirname
     }
     Write-Output ""    
-    $zip.Dispose();
+    $zip.Dispose()
 }
 
 function eliminar() {
@@ -164,7 +164,7 @@ function vaciar() {
 function recuperar(){
     verificoPapeleraExista
     verificoPapeleraVacia
-  
+
     $contadorArchivosIguales=0
     $archivosIguales = ""
     $arrayArchivos = @()
@@ -235,14 +235,12 @@ function recuperar(){
         Write-Host "Opción invalida"; 
         $zip.Dispose();
         exit 1;
-      }
-      
+      }      
     }
-  
+    
     $zip.Dispose();
     Write-host "Archivo recuperado"
 }
-
 
 function verificoPapeleraExista() {
   if(!(Test-Path "$papelera")){
@@ -255,9 +253,7 @@ function verificoPapeleraVacia() {
       Write-Output "Error, la papelera está vacía"
       Exit 1
   }
-}    
-
-
+}
 function verificoArchivoExiste() {
     if (!( Test-Path -Path $eliminar )){
       Write-Output "Error, el archivo '$eliminar' no existe"
@@ -277,10 +273,9 @@ function verificoArchivoExiste() {
   
       "
     Exit
-  }
+}
   
 $papelera="${HOME}\papelera.zip"
-
 if($listar){
     listar
     Exit
