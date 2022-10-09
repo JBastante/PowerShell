@@ -41,19 +41,22 @@ function listar() {
     verificoPapeleraVacia
     
     Write-Output ""
-    $realpath=[System.IO.Compression.ZipFile]::Open("$papelera", "read").Entries
-    foreach($arch in $realpath.FullName){
+    Add-Type -Assembly 'System.IO.Compression.FileSystem'
+    $zip=[System.IO.Compression.ZipFile]::Open("$papelera", "read")
+    foreach($arch in $zip.Entries.FullName){
         $basename=$(Split-Path -Leaf "$arch")
         $dirname=$(Split-Path -Path "$arch")
         Write-Host $basename"   "$dirname
     }
     Write-Output ""    
+    $zip.Dispose()
 }
 
 function eliminar() {
     verificoArchivoExiste
     
     $aZipear=$(get-childItem  $eliminar).FullName
+    Add-Type -Assembly 'System.IO.Compression.FileSystem'
 
     if (Test-Path -Path "$papelera" -PathType Leaf){ #si existe la papelera actualizo contenido
         $nivelDeCompresion = [System.IO.Compression.CompressionLevel]::Fastest
@@ -75,21 +78,22 @@ function borrar() { #elimino archivo del zip
     verificoPapeleraVacia
 
     $indice=0
-    Add-Type -Assembly 'System.IO.Compression.FileSystem'    
-    $zip = [System.IO.Compression.ZipFile]::Open("$papelera", "update");
+    Add-Type -Assembly 'System.IO.Compression.FileSystem'
+    $zip = [System.IO.Compression.ZipFile]::Open("$papelera", "update")
+    $archivoABorrar=$(Split-Path -Leaf "$borrar")
     foreach($archivoDelZip in $zip.Entries.FullName){
         $nombreArchivo=$(Split-Path -Leaf "$archivoDelZip")
   
-        if("$nombreArchivo".Equals("$borrar")){
-            $zip.Entries[$indice].Delete();
-            $zip.Dispose();
+        if("$nombreArchivo".Equals("$archivoABorrar")){
+            $zip.Entries[$indice].Delete()
+            $zip.Dispose()
             Write-Output "Se borra archivo $borrar"
             Exit
         }
         $indice++
     }
-    Write-Output "Error, no existe el archivo '$borrar' en la paelera"
-    $zip.Dispose();
+    Write-Output "Error, no existe el archivo '$borrar' en la papelera"
+    $zip.Dispose()
 }
 
 function vaciar() {
@@ -107,20 +111,14 @@ function vaciar() {
 function recuperar(){
     verificoPapeleraExista
     verificoPapeleraVacia
-  
+
     $contadorArchivosIguales=0
     $archivosIguales = ""
     $arrayArchivos = @()
   
     Add-Type -Assembly 'System.IO.Compression.FileSystem'
     $zip = [System.IO.Compression.ZipFile]::Open("$papelera", "update");
-    
-    foreach($archivoDelZip in $zip.Entries.FullName){
-      #Resolve-Path "$archivoDelZip" -ErrorAction SilentlyContinue -ErrorVariable _file
-      #Write-Output $archivoDelZip
-      #$archivoListar = $_file[0].TargetObject
-      #Write-Output $archivoListar
-      
+    foreach($archivoDelZip in $zip.Entries.FullName){      
       $nombreArchivo=$(Split-Path -Leaf "$archivoDelZip")
       $rutaArchivo=$(Split-Path -Path "$archivoDelZip")
   
@@ -188,38 +186,32 @@ function recuperar(){
         Write-Host "Opciòn invalida"; 
         $zip.Dispose();
         exit 1;
-      }
-      
+      }      
     }
-  
+    
     $zip.Dispose();
     Write-host "Archivo recuperado"
 }
 
-
 function verificoPapeleraExista() {
   if(!(Test-Path "$papelera")){
-    Write-host "Archivo papelera.zip no existe en el home del usuario"
-    Write-host "No existen archivos a recuperar"
+    Write-host "Error, no existe la papelera"
     exit 1
   }    
 }
 function verificoPapeleraVacia() {
   if( $(get-childItem "$papelera").Length -le 22 ){ #un archivo zip vacio pesa 22bytes
-      Write-Output "Error, nada que recuperar, la papelera está vacía"
+      Write-Output "Error, la papelera está vacía"
       Exit 1
   }
-}    
-
-
+}
 function verificoArchivoExiste() {
     if (!( Test-Path -Path $eliminar )){
-      Write-Output "Error el archivo '$eliminar' no existe"
+      Write-Output "Error, el archivo '$eliminar' no existe"
       Exit 1
     }
 }
-
-  function errorParametros(){
+function errorParametros(){
     Write-Output "
       #####################################################
   
@@ -231,10 +223,9 @@ function verificoArchivoExiste() {
   
       "
     Exit
-  }
+}
   
 $papelera="${HOME}\papelera.zip"
-
 if($listar){
     listar
     Exit
